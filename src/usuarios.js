@@ -3,11 +3,17 @@ const router = express.Router();
 const { Pool } = require('pg');
 require('dotenv').config();
 const process = require('process');
+const cors = require('cors');
+
 
 
 const pool = new Pool({
 	connectionString: process.env.POSTGRES_URL
 })
+
+router.use(cors({
+	origin:'*'
+}));
 
 router.use(function tileLog(req,res,next) {
 	console.log("time: " + Date.now())
@@ -60,12 +66,12 @@ router.put("/register_admin/:login", async (req,res) => {
 
 //cadastrar novo usuário
 router.post("/cadastro", async ( req,res) => {
-	const { nome, sobrenome, email, login, password} = req.body
-	console.log(req.body	)
+	const { nome, sobrenome, email, username, password} = req.body
 	try {
-		const newUser = await pool.query("insert into usuario (nome, email, login, password) values ($1,$2, $3, $4) returning *",[nome, email, login, password])
-		res.status.send(newUser.rows)
+		const newUser = await pool.query("insert into usuario (nome, sobrenome, email, username, password) values ($1, $2, $3, $4, $5) returning *",[nome, sobrenome, email, username, password])
+		res.status(200).send(newUser.rows)
 	} catch(err) {
+		console.log(err)
 		res.status(400).send(err)
 	}
 })
