@@ -61,7 +61,7 @@ router.put("/register_admin/:login", async (req,res) => {
 //cadastrar novo usuário
 router.post("/cadastro", async ( req,res) => {
 	const { nome, sobrenome, email, login, password} = req.body
-	console.log(req.body)
+	console.log(req.body	)
 	try {
 		const newUser = await pool.query("insert into usuario (nome, email, login, password) values ($1,$2, $3, $4) returning *",[nome, email, login, password])
 		res.status.send(newUser.rows)
