@@ -75,7 +75,7 @@ router.post('/upload_audio', async (req,res) => {
 		})
 
 		const buffer = Buffer.from( await blob.arrayBuffer() )
-		fs.writeFile(base + 'tmp/prikith.mp3', buffer, () => console.log('audio saved!') );
+		fs.writeFile(base + 'tmp/audio_teste.mp3', buffer, () => console.log('audio saved!') );
 		return res.status(200).send("file created successfully")
 	} catch(err) {
 		console.log(err)
