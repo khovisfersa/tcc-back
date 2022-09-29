@@ -109,16 +109,6 @@ app.put("/register_admin/:login", async (req,res) => {
 	}
 })
 
-app.post("/cadastro", async ( req,res) => {
-	const { nome, email, login, password} = req.body
-	try {
-		const newUser = await pool.query("insert into usuario (nome, email, login, password) values ($1,$2, $3, $4) returning *",[nome, email, login, password])
-		res.status.send(newUser.rows)
-	} catch(err) {
-		res.status(400).send(err)
-	}
-})
-
 app.get('/tarefas', async (req,res) => {
 	try{
 		const { rows } = await pool.query("select * from tarefa")
