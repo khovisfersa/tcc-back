@@ -15,9 +15,7 @@ const pool = new Pool({
 	connectionString: process.env.POSTGRES_URL
 })
 
-router.use(cors({
-	origin:'*'
-}));
+router.use(cors());
 
 router.use(function tileLog(req,res,next) {
 	console.log("time: " + Date.now())
@@ -25,6 +23,11 @@ router.use(function tileLog(req,res,next) {
 })
 
 router.use(express.json())
+
+
+router.get('/user', auth, (req,res) => {
+	
+})
 
 router.post('/welcome', auth, (req,res) => {
 	res.status(200).send("Welcome, motherfucker!")

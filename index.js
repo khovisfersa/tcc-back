@@ -8,10 +8,11 @@ const cors = require('cors');
 const formidable = require('formidable');
 require('dotenv').config();
 
-app.use(require('./grupos.js'));
-app.use(require('./usuarios.js'));
-app.use(require('./tarefas.js'));
-app.use(require('./respostas.js'));
+app.use(require('./src/grupos.js'));
+app.use(require('./src/usuarios.js'));
+app.use(require('./src/tarefas.js'));
+app.use(require('./src/respostas.js'));
+
 app.use(cors({
 	origin: '*'
 }));
@@ -25,12 +26,12 @@ app.use(express.json())
 const PORT = process.env.PORT || 3333
 
 app.get('/',(req ,res) => {
-	res.status(200).sendFile( __dirname + "/index.html")
+	res.status(200).sendFile( __dirname + "/src/index.html")
 })
 
 
 app.get('/upload', (req,res) => {
-	res.sendFile(__dirname + "/upload.html")
+	res.sendFile(__dirname + "/src/upload.html")
 })
 
 
