@@ -66,10 +66,13 @@ router.post('/uploadaudio', (req,res) => {
 router.post('/upload_audio', async (req,res) => {
 	try {
 		console.log("veio pra ca")
-		console.log(req.header)
 		
 		var filename = req.body.filename
+		console.log("req.body: ")
 		console.log(req.body)
+		console.log("////////////////////////////")
+
+		console.log("file name: " + filename)
 		const  blob = new Blob(req.body.file, {
 			type: 'audio/mp3'
 		})
