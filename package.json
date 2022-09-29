@@ -22,6 +22,7 @@
     "get-video-duration": "^4.1.0",
     "git": "^0.1.5",
     "https": "^1.0.0",
+    "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.19",
     "pg": "^8.8.0",
     "process": "^0.11.10",
