@@ -88,24 +88,25 @@ router.post('/upload_audio', async (req,res) => {
 
 
 router.get('/audio',(req,res) => {
-        const range = req.headers.range;
-        const videoPath = base + "tmp/3-1-1.mp3"
-        const videoSize = fs.statSync(videoPath).size;
-        const chunkSize = 1*1e6;
-        const start = Number(range.replace(/\D/g, ""));
-        const end = Math.min(start + chunkSize, videoSize-1);
-        const contentLength = end - start + 1
-        const headers = {
-                "Content-Range": `bytes ${start} - ${end}/${videoSize}`,
-                "Accept-Ranges": "bytes",
-                "Content-length": contentLength,
-                "content-Type": "audio/mp3"
-        }
+	console.log("respostas")
+    const range = req.headers.range;
+    const videoPath = base + "tmp/3-1-1.mp3"
+    const videoSize = fs.statSync(videoPath).size;
+    const chunkSize = 1*1e6;
+    const start = Number(range.replace(/\D/g, ""));
+    const end = Math.min(start + chunkSize, videoSize-1);
+    const contentLength = end - start + 1
+    const headers = {
+            "Content-Range": `bytes ${start} - ${end}/${videoSize}`,
+            "Accept-Ranges": "bytes",
+            "Content-length": contentLength,
+            "content-Type": "audio/mp3"
+    }
 
-        res.writeHead(206, headers)
+    res.writeHead(206, headers)
 
-        const stream = fs.createReadStream(videoPath,{start, end})
-        stream.pipe(res)
+    const stream = fs.createReadStream(videoPath,{start, end})
+    stream.pipe(res)
 })
 
 module.exports = router
