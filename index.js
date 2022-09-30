@@ -161,26 +161,26 @@ app.get('/download', async(req,res) => {
 	return res.status(200).send(func.downloadFile(fileId))
 })
 
-app.get('/audio',(req,res) => {
-	const range = req.headers.range;
-	const videoPath = __dirname + "/tmp/Google drive API javascript #2 _ Get files, download files, update files & delete files of Drive JS.mp3"
-	const videoSize = fs.statSync(videoPath).size;
-	const chunkSize = 1*1e6;
-	const start = Number(range.replace(/\D/g, ""));
-	const end = Math.min(start + chunkSize, videoSize-1);
-	const contentLength = end - start + 1
-	const headers = {
-		"Content-Range": `bytes ${start} - ${end}/${videoSize}`,
-		"Accept-Ranges": "bytes",
-		"Content-length": contentLength,
-		"content-Type": "audio/mp3"
-	}
+// app.get('/audio',(req,res) => {
+// 	const range = req.headers.range;
+// 	const videoPath = __dirname + "/tmp/Google drive API javascript #2 _ Get files, download files, update files & delete files of Drive JS.mp3"
+// 	const videoSize = fs.statSync(videoPath).size;
+// 	const chunkSize = 1*1e6;
+// 	const start = Number(range.replace(/\D/g, ""));
+// 	const end = Math.min(start + chunkSize, videoSize-1);
+// 	const contentLength = end - start + 1
+// 	const headers = {
+// 		"Content-Range": `bytes ${start} - ${end}/${videoSize}`,
+// 		"Accept-Ranges": "bytes",
+// 		"Content-length": contentLength,
+// 		"content-Type": "audio/mp3"
+// 	}
 
-	res.writeHead(206, headers)
+// 	res.writeHead(206, headers)
 
-	const stream = fs.createReadStream(videoPath,{start, end})
-	stream.pipe(res)
-})
+// 	const stream = fs.createReadStream(videoPath,{start, end})
+// 	stream.pipe(res)
+// })
 
 app.get('/get_file/:file', async (req,res) => {
 	const {file} = req.params;
