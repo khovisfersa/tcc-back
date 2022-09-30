@@ -91,6 +91,7 @@ router.get('/audio',(req,res) => {
 	console.log("respostas")
     const range = req.headers.range;
     const videoPath = base + "tmp/3-1-1.mp3"
+    console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
     const chunkSize = 1*1e6;
     const start = Number(range.replace(/\D/g, ""));
