@@ -69,7 +69,7 @@ router.post('/upload_audio', async (req,res) => {
 		
 		var filename = req.body.filename
 		console.log("req.body: ")
-		console.log(req.body)
+		console.log("req.filename: " +req.filename)
 		console.log("////////////////////////////")
 
 		console.log("file name: " + filename)
