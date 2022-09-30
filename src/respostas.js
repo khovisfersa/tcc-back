@@ -69,7 +69,6 @@ router.post('/upload_audio', async (req,res) => {
 		
 		var filename = req.body.filename
 		console.log("req.body: ")
-		console.log(req.body)
 		console.log("////////////////////////////")
 
 		console.log("file name: " + filename)
@@ -78,7 +77,7 @@ router.post('/upload_audio', async (req,res) => {
 		})
 
 		const buffer = Buffer.from( await blob.arrayBuffer() )
-		fs.writeFile(base + 'tmp/audio_teste.mp3', buffer, () => console.log('audio saved!') );
+		fs.writeFile(base + 'tmp/' + filename + '.mp3', buffer, () => console.log('audio saved!') );
 		return res.status(200).send("file created successfully")
 	} catch(err) {
 		console.log(err)
@@ -87,9 +86,25 @@ router.post('/upload_audio', async (req,res) => {
 })
 
 
-router.get('/audio', (req,res) => {
-	const range = req.header.range
-	const video_path = base + '/tmp/Google drive API javascript'
+router.get('/audio',(req,res) => {
+        const range = req.headers.range;
+        const videoPath = base + "tmp/3-1-1.mp3"
+        const videoSize = fs.statSync(videoPath).size;
+        const chunkSize = 1*1e6;
+        const start = Number(range.replace(/\D/g, ""));
+        const end = Math.min(start + chunkSize, videoSize-1);
+        const contentLength = end - start + 1
+        const headers = {
+                "Content-Range": `bytes ${start} - ${end}/${videoSize}`,
+                "Accept-Ranges": "bytes",
+                "Content-length": contentLength,
+                "content-Type": "audio/mp3"
+        }
+
+        res.writeHead(206, headers)
+
+        const stream = fs.createReadStream(videoPath,{start, end})
+        stream.pipe(res)
 })
 
 module.exports = router

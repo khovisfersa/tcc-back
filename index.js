@@ -163,19 +163,12 @@ app.get('/download', async(req,res) => {
 
 app.get('/audio',(req,res) => {
 	const range = req.headers.range;
-	console.log(__dirname + "/tmp/")
 	const videoPath = __dirname + "/tmp/Google drive API javascript #2 _ Get files, download files, update files & delete files of Drive JS.mp3"
-	console.log("video path: " + videoPath)
 	const videoSize = fs.statSync(videoPath).size;
-
 	const chunkSize = 1*1e6;
-	console.log(range)
 	const start = Number(range.replace(/\D/g, ""));
 	const end = Math.min(start + chunkSize, videoSize-1);
 	const contentLength = end - start + 1
-
-	console.log("start: " + start)
-
 	const headers = {
 		"Content-Range": `bytes ${start} - ${end}/${videoSize}`,
 		"Accept-Ranges": "bytes",
