@@ -68,8 +68,7 @@ router.post('/upload_audio', async (req,res) => {
 		console.log("veio pra ca")
 		
 		var filename = req.body.filename
-		console.log("req.body: ")
-		console.log("req.filename: " + req.filename)
+		console.log("req.filename: " + req.body.filename)
 		console.log("////////////////////////////")
 
 		console.log("file name: " + filename)
@@ -90,9 +89,10 @@ router.post('/upload_audio', async (req,res) => {
 router.get('/audio',(req,res) => {
 	console.log("respostas")
     const range = req.headers.range;
-    const videoPath = base + "tmp/3-1-1.mp3"
+    const videoPath = base + "tmp/audio_teste.mp3"
     console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
+    console.log(videoSize)
     const chunkSize = 1*1e6;
     const start = Number(range.replace(/\D/g, ""));
     const end = Math.min(start + chunkSize, videoSize-1);
