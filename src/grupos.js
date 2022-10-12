@@ -4,6 +4,22 @@ var router = express.Router();
 require('dotenv').config()
 const { Pool } = require('pg')
 const process = require('process')
+const cors = require('cors');
+const jwt = require("jsonwebtoken")
+const auth = require("../middleware/auth.js")
+const admin = require("../middleware/admin.js")
+const conteudista = require("../middleware/conteudista.js")
+const config = process.env
+
+
+
+const pool = new Pool({
+	connectionString: process.env.POSTGRES_URL
+})
+
+router.use(cors());
+
+router.use(express.json())
 
 
 
@@ -102,6 +118,8 @@ router.get("/usuarios_em_grupo/:grupo_name", async (req,res) => {
 		return res.status(400).send(err)
 	}
 })
+
+router.get("/")
 
 
 

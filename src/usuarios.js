@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken")
 const auth = require("../middleware/auth.js")
 const admin = require("../middleware/admin.js")
 const conteudista = require("../middleware/conteudista.js")
+const config = process.env
 
 
 
@@ -50,10 +51,10 @@ router.post("/entrar_em_grupo", async (req,res) => {
 })
 
 // registrar usuário como admin
-router.put("/register_admin/:login", async (req,res) => {
-	const login = req.login
+router.put("/register_admin", auth, admin, async (req,res) => {
+	const { username } = req.body
 	try {
-		const admin = await pool.query("update usuario set isAdmin = TRUE where login = $1 returning*",[login])
+		const admin = await pool.query("update usuario set isAdmin = TRUE where username = $1 returning*",[username])
 		console.log('admin adicionado com sucesso')
 		return res.status(200).send(admin)
 	} catch(err) {
@@ -63,12 +64,12 @@ router.put("/register_admin/:login", async (req,res) => {
 })
 
 // registrar usuario como conteudista
-router.put("/register_admin/:login", async (req,res) => {
-	const login = req.login
+router.put("/register_admin", auth, admin, async (req,res) => {
+	const { username } = req.body
 	try {
-		const admin = await pool.query("update usuario set isConteudista = TRUE where login = $1 returning*",[login])
+		const conteudista = await pool.query("update usuario set isConteudista = TRUE where username = $1 returning*",[username])
 		console.log('Conteudista adicionado com sucesso')
-		return res.status(200).send(admin)
+		return res.status(200).send(conteudista)
 	} catch(err) {
 		console.log(err)
 		return res.status(400).send(err)
@@ -84,6 +85,17 @@ router.put("/register_admin/:login", async (req,res) => {
 //                                                                                                   // 
 //                                                                                                   // 
 /////////////////////////////////////////////////////////////////////////////////////////////////////// 
+router.post("/cadastro", async ( req,res) => {
+	const { nome, sobrenome, email, username, password} = req.body
+	try {
+		const newUser = await pool.query("insert into usuario (nome, sobrenome, email, username, password) values ($1, $2, $3, $4, $5) returning *",[nome, sobrenome, email, username, password])
+		res.status(200).send(newUser.rows)
+	} catch(err) {
+		console.log(err)
+		res.status(400).send(err)
+	}
+})
+
 router.post("/cadastro", async ( req,res) => {
 	const { nome, sobrenome, email, username, password} = req.body
 	try {
@@ -128,6 +140,8 @@ router.post("/login", async (req,res) => {
 			let user = {}
 			user.username = rows[0].username
 			user.token = token
+			user.isadmin = rows[0].isadmin
+			user.isconteudista = rows[0].isconteudista
 			console.log(token)
 
 			return res.status(200).send(user)
@@ -145,6 +159,99 @@ router.post("/login", async (req,res) => {
 
 
 
+// pegar informações do usuário
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Procurar uma forma de enviar/comparar as senhas que não envolva enviálas em plain text  //
+//                                                                                         //
+//                                                                                         //
+//                                                                                         //
+/////////////////////////////////////////////////////////////////////////////////////////////
+router.get("/user_id", auth, async (req,res) => {
+	try {
+		const token = req.headers['x-access-token']
 
+		if(!token) {
+			return res.status(403).send("Uma token é necessária para autenticação 2")
+		}
+
+		const decoded = jwt.verify(token, config.TOKEN_KEY);
+		req.user = decoded
+		console.log("decoded")
+
+		return res.status(200).send({user_id: decoded.user_id})
+
+
+	} catch (err) {
+		console.log(err)
+		return res.status(400).send('Deu ruim')
+	}
+})
+
+router.get('/user_info', auth, async (req,res) => {
+	try {
+		const token = req.headers['x-access-token']
+
+		if(!token) {
+			return res.status(403).send("Uma token é necessária para autenticação 2")
+		}
+
+		const decoded = jwt.verify(token, config.TOKEN_KEY)
+
+		const { rows } = await pool.query("select usuario_id, username, isConteudista, isAdmin from usuario where usuario_id = $1",[decoded.user_id])
+
+		let user = {}
+		console.log(rows)
+
+		user.username = rows[0].username
+		user.isadmin = rows[0].isadmin
+		user.user_id = rows[0].usuario_id
+		user.isconteudista = rows[0].isconteudista
+		user.token = token
+
+		console.log(user)
+
+		return res.status(200).send(user)
+	} catch(err) {
+		return res.status(400).send(err)
+	}
+})
+
+router.get("/user_name", auth, async (req,res) => {
+	try {
+		const token = req.headers['x-access-token']
+
+		if(!token) {
+			return res.status(403).send("Uma token é necessária para autenticação 2")
+		}
+
+		const decoded = jwt.verify(token, config.TOKEN_KEY);
+		req.user = decoded
+		console.log("decoded")
+		console.log(decoded)
+
+		return res.status(200).send({user_name: decoded.user_name})
+
+
+	} catch (err) {
+		console.log(err)
+		return res.status(400).send('Deu ruim')
+	}
+})
+
+router.get("/user_grupos", auth, async (req,res) => {
+	try {
+		const token = req.headers["x-access-token"]
+
+		const decoded = jwt.verify(token, config.TOKEN_KEY);
+
+		let { rows } = await pool.query("select grupo_id from usuario_em_grupo where usuario_id = $1",[decoded.user_id])
+		const grupo_id = rows[0].user_id
+		let { rows } = await pool.query("select nome, idioma, nivel from grupo where grupo_id = $1",[rows[0].user_id])
+
+		return res.status(200).send(rows[0])
+	} catch(err) {
+		return res.status(400).send(err)
+	}
+})
 
 module.exports = router

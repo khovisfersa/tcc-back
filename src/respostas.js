@@ -68,7 +68,7 @@ router.post('/upload_audio', async (req,res) => {
 
 		let form = new formidable.IncomingForm();
 
-		console.log()
+		console.log("coisou")
 		form.parse(req, (error, fields, file) => {
 			let file_path = file.file.filepath
 			let new_path = path.join(base, fields.filename + '.mp3')
@@ -84,6 +84,9 @@ router.post('/upload_audio', async (req,res) => {
 				fs.rename(file_path, new_path	, (err) => {
 					if(err) throw err;
 					console.log("deu bom, meu consagrado")
+
+					// const new_entry = await pool.query("insert into usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, filepath, text) values ()")
+
 					return res.status(200).send("Agora sim, deu bom")
 				})
 			} catch(err) {
@@ -128,7 +131,7 @@ router.post('/upload_audio', async (req,res) => {
 router.get('/audio',(req,res) => {
 	console.log("respostas")
     const range = req.headers.range;
-    const videoPath = base + "tmp/3-1-1.mp3"
+    const videoPath = base + "tmp/4-2-1.mp3"
     console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
     const chunkSize = 1*1e6;
