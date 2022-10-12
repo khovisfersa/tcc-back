@@ -65,6 +65,16 @@ router.post('/uploadaudio', (req,res) => {
 })
 
 router.post('/upload_audio', async (req,res) => {
+		console.log("veio pra ca")
+		
+		var filename = req.body.filename
+		console.log("req.filename: " + req.body.filename)
+		console.log("////////////////////////////")
+
+		console.log("file name: " + filename)
+		const  blob = new Blob(req.body.file, {
+			type: 'audio/mp3'
+		})
 
 		let form = new formidable.IncomingForm();
 
@@ -134,6 +144,7 @@ router.get('/audio',(req,res) => {
     const videoPath = base + "tmp/4-2-1.mp3"
     console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
+    console.log(videoSize)
     const chunkSize = 1*1e6;
     const start = Number(range.replace(/\D/g, ""));
     const end = Math.min(start + chunkSize, videoSize - 1);
