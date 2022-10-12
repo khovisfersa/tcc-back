@@ -28,13 +28,6 @@ router.use(function timeLog(req,res,next) {
 	next();
 })
 
-router.use(express.json())
-
-const pool = new Pool({
-	connectionString: process.env.POSTGRES_URL
-})
-
-
 //deleta todos os grupos
 router.get('/delete_all_groups', async (req,res) => {
 	try {
