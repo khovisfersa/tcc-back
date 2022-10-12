@@ -246,9 +246,9 @@ router.get("/user_grupos", auth, async (req,res) => {
 
 		let { rows } = await pool.query("select grupo_id from usuario_em_grupo where usuario_id = $1",[decoded.user_id])
 		const grupo_id = rows[0].user_id
-		let { rows } = await pool.query("select nome, idioma, nivel from grupo where grupo_id = $1",[rows[0].user_id])
+		let resposta = await pool.query("select nome, idioma, nivel from grupo where grupo_id = $1",[rows[0].user_id])
 
-		return res.status(200).send(rows[0])
+		return res.status(200).send(resposta.rows[0])
 	} catch(err) {
 		return res.status(400).send(err)
 	}
