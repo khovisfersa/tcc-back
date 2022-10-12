@@ -141,7 +141,7 @@ router.post('/upload_audio', async (req,res) => {
 router.get('/audio',(req,res) => {
 	console.log("respostas")
     const range = req.headers.range;
-    const videoPath = base + "tmp/4-2-1.mp3"
+    const videoPath = base + "/4-2-1.mp3"
     console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
     console.log(videoSize)
