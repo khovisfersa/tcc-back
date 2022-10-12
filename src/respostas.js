@@ -65,7 +65,6 @@ router.post('/uploadaudio', (req,res) => {
 })
 
 router.post('/upload_audio', async (req,res) => {
-	try {
 		console.log("veio pra ca")
 		
 		var filename = req.body.filename
