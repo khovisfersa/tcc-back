@@ -106,13 +106,13 @@ router.post('/upload_audio', async ( req,res ) => {
 		})
 })
 
-router.post('/rate_resposta', async ( req,res ) => {
-	try {
-		const {  }
-	} catch(err) {
+// router.post('/rate_resposta', async ( req,res ) => {
+// 	try {
+// 		const {  }
+// 	} catch(err) {
 
-	}
-})
+// 	}
+// })
 
 
 // router.post('/upload_audio', async (req,res) => {
