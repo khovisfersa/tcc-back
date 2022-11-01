@@ -64,7 +64,7 @@ router.post('/uploadaudio', (req,res) => {
 	})
 })
 
-router.post('/upload_audio', async (req,res) => {
+router.post('/upload_audio', async ( req,res ) => {
 		console.log("veio pra ca")
 		
 		var filename = req.body.filename
@@ -106,6 +106,14 @@ router.post('/upload_audio', async (req,res) => {
 		})
 })
 
+router.post('/rate_resposta', async ( req,res ) => {
+	try {
+		const {  }
+	} catch(err) {
+
+	}
+})
+
 
 // router.post('/upload_audio', async (req,res) => {
 // 	try {
@@ -137,6 +145,36 @@ router.post('/upload_audio', async (req,res) => {
 // 	}
 // })
 
+router.get('/audio_by_name/:name',(req,res) => {
+	const { name } = req.params
+
+	try {
+		const range = req.headers.range;
+    const videoPath = base + "/" + name + ".mp3"
+    console.log(videoPath)
+    const videoSize = fs.statSync(videoPath).size;
+    console.log(videoSize)
+    const chunkSize = 1*1e6;
+    const start = Number(range.replace(/\D/g, ""));
+    const end = Math.min(start + chunkSize, videoSize - 1);
+    const contentLength = end - start + 1
+    const headers = {
+            "Content-Range": `bytes ${start} - ${end}/${videoSize}`,
+            "Accept-Ranges": "bytes",
+            "Content-length": contentLength,
+            "content-Type": "audio/mp3"
+    }
+
+    res.writeHead(206, headers)
+
+    const stream = fs.createReadStream(videoPath,{start, end})
+    stream.pipe(res)	
+	} catch(err) {
+
+	}
+})
+
+// router.get('/audio_by_resposta', (req,res) => {})
 
 router.get('/audio',(req,res) => {
 	console.log("respostas")
