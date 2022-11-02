@@ -106,6 +106,17 @@ router.post('/upload_audio', async ( req,res ) => {
 		})
 })
 
+router.post('/create_resposta', async (req,res) => {
+	try {
+		const { tarefa_id, grupo_id, usuario_id, text, identificador, filepath } = req.body
+		await pool.query('INSERT INTO usuario_de_grupo_responde (tarefa_id, grupo_id, usuario_id, identificador, filepath, text) VALUES ($1,$2, $3, $4, $5, $6)'[tarefa_id, grupo_id, usuario_id, identificador, filepath, text])
+
+
+	} catch (err) {
+
+	}
+})
+
 // router.post('/rate_resposta', async ( req,res ) => {
 // 	try {
 // 		const {  }

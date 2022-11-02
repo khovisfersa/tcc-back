@@ -197,7 +197,7 @@ router.get('/user_info', auth, async (req,res) => {
 
 		const decoded = jwt.verify(token, config.TOKEN_KEY)
 
-		const { rows } = await pool.query("select usuario_id, username, isConteudista, isAdmin from usuario where usuario_id = $1",[decoded.user_id])
+		const { rows } = await pool.query("select usuario_id, username, isConteudista, isAdmin from usuario natural join usuario_em_grupo where usuario_id = $1",[decoded.user_id])
 
 		let user = {}
 		console.log(rows)
@@ -207,6 +207,7 @@ router.get('/user_info', auth, async (req,res) => {
 		user.user_id = rows[0].usuario_id
 		user.isconteudista = rows[0].isconteudista
 		user.token = token
+		user.grupo_id = rows[0].grupo_id
 
 		console.log(user)
 
