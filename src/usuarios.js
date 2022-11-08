@@ -120,7 +120,7 @@ router.post("/login", async (req,res) => {
 	const {username, password} = req.body
 	console.log("user: " + username)
 	try {
-		const {rows} = await pool.query("select usuario_id, username, password, isConteudista, isAdmin from usuario where username = $1",[username])
+		const {rows} = await pool.query("select usuario_id, grupo_id, username, password, isConteudista, isAdmin from usuario NATURAL JOIN usuario_em_grupo where username = $1",[username])
 		console.log(rows[0])
 		if (rows[0].password == password) {
 			const token = jwt.sign(
@@ -138,6 +138,8 @@ router.post("/login", async (req,res) => {
 			);
 
 			let user = {}
+			user.usuario_id = rows[0].usuario_id
+			user.grupo_id = rows[0].grupo_id
 			user.username = rows[0].username
 			user.token = token
 			user.isadmin = rows[0].isadmin

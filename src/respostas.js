@@ -66,12 +66,12 @@ router.post('/uploadaudio', (req,res) => {
 
 router.post('/upload_audio', async ( req,res ) => {
 		console.log("veio pra ca")
+		var user_id = req.body.user_id
+		var grupo_id = req.body.grupo_id
+		var tarefa_id = req.body.tarefa_id
+		var identificador = req.body.identificador
 		
 		var filename = req.body.filename
-		console.log("req.filename: " + req.body.filename)
-		console.log("////////////////////////////")
-
-		console.log("file name: " + filename)
 		const  blob = new Blob(req.body.file, {
 			type: 'audio/mp3'
 		})
@@ -91,11 +91,11 @@ router.post('/upload_audio', async ( req,res ) => {
 					if (err) throw err
 					console.log("deu bom, eu acho")
 				})
-				fs.rename(file_path, new_path	, (err) => {
+				fs.rename(file_path, new_path	, async (err) => {
 					if(err) throw err;
 					console.log("deu bom, meu consagrado")
 
-					// const new_entry = await pool.query("insert into usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, filepath, text) values ()")
+					const new_entry = await pool.query("INSERT INTO usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, filepath, text) VALUES ($1, $2, $3, $4, $5, $6)",[user_id, grupo_id, tarefa_id, identificador, null, text])
 
 					return res.status(200).send("Agora sim, deu bom")
 				})

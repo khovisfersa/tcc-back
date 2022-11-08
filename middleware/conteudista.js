@@ -11,7 +11,9 @@ const verifyConteudista = (req,res,next) => {
 	try {
 		const decoded = jwt.verify(token, config.TOKEN_KEY);
 		req.user = decoded
-		if(!decoded.isconteudista) {
+		console.log("decoded")
+		console.log(decoded)
+		if(!decoded.isConteudista) {
 			return res.status(401).send("Usuário sem permissão para a operação")
 		}
 	} catch(err) {

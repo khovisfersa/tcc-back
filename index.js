@@ -120,16 +120,6 @@ app.get('/tarefas', async (req,res) => {
 	}
 })
 
-app.post("/criar_tarefa", async (req,res) => {
-	const { titulo, nivel, texto, avaliacao } = req.body
-	try {
-		const tarefa = pool.query('INSERT INTO tarefa ("titulo", "nivel", "texto", "metodo_de_avaliacao") VALUES ($1, $2, $3, $4) returning *',[titulo, nivel, texto, avaliacao])
-		return res.status(200).send(tarefa.rows)
-	} catch(err) {
-		return res.status(400).send(err)
-	}
-})
-
 app.get("/usuarios", async (req,res) => {
 	try{
 		const { rows } = await pool.query("select * from usuario")

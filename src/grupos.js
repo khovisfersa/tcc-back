@@ -9,6 +9,9 @@ const jwt = require("jsonwebtoken")
 const auth = require("../middleware/auth.js")
 const admin = require("../middleware/admin.js")
 const conteudista = require("../middleware/conteudista.js")
+const path = require('path')
+const fs = require('fs')
+
 const config = process.env
 
 
@@ -20,6 +23,8 @@ const pool = new Pool({
 router.use(cors());
 
 router.use(express.json())
+
+const base = path.join(__dirname, '..', 'fileSystem')
 
 
 
@@ -33,7 +38,7 @@ router.get('/delete_all_groups', async (req,res) => {
 	try {
 		extra.emptydirSync('/home/admin/tcc/fileSystem/grupos');
 		await pool.query("delete from usuario_em_grupo")
-		const deleted_groups = await pool.query("delete from grupo returning grupoid");
+		const deleted_groups = await pool.query("delete from grupo returning grupo_id");
 		return res.status(200).send(deleted_groups)
 	} catch (err) {
 		console.log(err)
@@ -69,10 +74,12 @@ router.get("/grupos/:idioma", async (req,res) => {
 router.post("/criar_grupo", async (req,res) => {
 	const { nome, idioma, nivel, usuarioid } = req.body
 	try {
-		const grupo = await pool.query('INSERT INTO grupo ("nome", "idioma", "nivel") VALUES ($1, $2, $3) returning grupoid',[nome, idioma, nivel])
+		const grupo = await pool.query('INSERT INTO grupo ("nome", "idioma", "nivel") VALUES ($1, $2, $3) returning grupo_id',[nome, idioma, nivel])
 		console.log(grupo.rows[0])
-		const usuario = await pool.query('INSERT INTO usuario_em_grupo ("usuarioid", "grupoid") values ($1, $2)',[usuarioid,grupo.rows[0].grupoid])
-		// fs.mkdir()		
+		const usuario = await pool.query('INSERT INTO usuario_em_grupo ("usuario_id", "grupo_id") values ($1, $2)',[usuarioid,grupo.rows[0].grupo_id])
+		fs.mkdir(path.join(base,  String(grupo.rows[0].grupo_id)), (err) => {
+			console.log(err)
+		})		
 		return res.status(200).send(grupo.rows)
 	} catch(err) {
 		console.log(err)
@@ -84,12 +91,12 @@ router.post("/criar_grupo", async (req,res) => {
 router.post("/entrar_em_grupo", async (req,res) => {
 	const { usuario, grupo } = req.body
 	try {
-		const {rows} = await pool.query("select usuarioid from usuario where login = $1",[usuario])
-		const user_id = rows[0].usuarioid
-		const rows2 = await pool.query("select grupoid from grupo where nome = $1",[grupo])
+		const {rows} = await pool.query("select usuario_id from usuario where login = $1",[usuario])
+		const user_id = rows[0].usuario_id
+		const rows2 = await pool.query("select grupo_id from grupo where nome = $1",[grupo])
 		console.log(rows2.rows[0].grupoid)
 		const grupo_id = rows2.rows[0].grupoid
-		const final = await pool.query("insert into usuario_em_grupo (usuarioid, grupoid) values ($1, $2)",[user_id, grupo_id])
+		const final = await pool.query("insert into usuario_em_grupo (usuario_id, grupo_id) values ($1, $2)",[user_id, grupo_id])
 		return res.status(200).send(final)
 	} catch(err) {
 		console.log(err)
@@ -103,7 +110,7 @@ router.get("/usuarios_em_grupo/:grupo_name", async (req,res) => {
 	const { grupo_name } = req.params
 	console.log("nome do grupo: " + grupo_name)
 	try {
-		const grupo = await pool.query("SELECT usuario.login FROM usuario INNER JOIN (usuario_em_grupo INNER JOIN grupo USING(grupoid)) USING(usuarioid) WHERE grupo.nome = $1",[grupo_name])
+		const grupo = await pool.query("SELECT usuario.login FROM usuario INNER JOIN (usuario_em_grupo INNER JOIN grupo USING(grupo_id)) USING(usuario_id) WHERE grupo.nome = $1",[grupo_name])
 		console.log(grupo.rows)
 		return res.status(200).send(grupo.rows)
 	} catch (err) {
