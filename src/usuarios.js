@@ -119,17 +119,23 @@ router.post("/cadastro", async ( req,res) => {
 router.post("/login", async (req,res) => {
 	const {username, password} = req.body
 	console.log("user: " + username)
+	console.log("password: " + password)
 	try {
-		const {rows} = await pool.query("select usuario_id, grupo_id, username, password, isConteudista, isAdmin from usuario NATURAL JOIN usuario_em_grupo where username = $1",[username])
-		console.log(rows[0])
-		if (rows[0].password == password) {
+		const usuario = await pool.query("SELECT usuario_id, username, password, isConteudista, isAdmin FROM usuario WHERE username = $1",[username])
+
+		console.log(usuario.rows[0])
+		
+		const grupo = await pool.query("SELECT grupo_id FROM usuario NATURAL JOIN usuario_em_grupo WHERE usuario_id = $1",[usuario.rows[0].usuario_id])
+
+		console.log(grupo.rows)
+		if (usuario.rows[0].password == password) {
 			const token = jwt.sign(
 				// {user_id: rows[0].usuario_id, username},
 				{ 
-					"user_id": rows[0].usuario_id,
+					"user_id": usuario.rows[0].usuario_id,
 					"user_name":username, 
-					"isConteudista": rows[0].isconteudista, 
-					"isAdmin": rows[0].isadmin
+					"isConteudista": usuario.rows[0].isconteudista, 
+					"isAdmin": usuario.rows[0].isadmin
 				},
 				process.env.TOKEN_KEY,
 				{
@@ -138,12 +144,14 @@ router.post("/login", async (req,res) => {
 			);
 
 			let user = {}
-			user.usuario_id = rows[0].usuario_id
-			user.grupo_id = rows[0].grupo_id
-			user.username = rows[0].username
+			user.usuario_id = usuario.rows[0].usuario_id
+			if(grupo.rows.length != 0){
+				user.grupo_id = grupo.rows[0].grupo_id
+			}
+			user.username = usuario.rows[0].username
 			user.token = token
-			user.isadmin = rows[0].isadmin
-			user.isconteudista = rows[0].isconteudista
+			user.isadmin = usuario.rows[0].isadmin
+			user.isconteudista = usuario.rows[0].isconteudista
 			console.log(token)
 
 			return res.status(200).send(user)

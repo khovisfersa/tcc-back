@@ -33,6 +33,17 @@ router.use(function timeLog(req,res,next) {
 	next();
 })
 
+router.get('/is_user_on_group/:usuario_id/:grupo_id', auth, async (req,res)=> {
+	const { usuario_id, grupo_id } = req.params 
+	try {
+		const { rows } = await pool.query("SELECT grupo_id from usuario_em_grupo where usuario_id = $1",[usuario_id])
+		if(rows[0].grupo_id == grupo_id) return res.status(200).send(true)
+		else return res.status(200).send(false)
+	} catch (err) {
+		return res.status(400).send("Some sort of error might have happened")
+	}
+})
+
 //deleta todos os grupos
 router.get('/delete_all_groups', async (req,res) => {
 	try {
@@ -91,11 +102,11 @@ router.post("/criar_grupo", async (req,res) => {
 router.post("/entrar_em_grupo", async (req,res) => {
 	const { usuario, grupo } = req.body
 	try {
-		const {rows} = await pool.query("select usuario_id from usuario where login = $1",[usuario])
+		const {rows} = await pool.query("select usuario_id from usuario where username = $1",[usuario])
 		const user_id = rows[0].usuario_id
 		const rows2 = await pool.query("select grupo_id from grupo where nome = $1",[grupo])
-		console.log(rows2.rows[0].grupoid)
-		const grupo_id = rows2.rows[0].grupoid
+		console.log(rows2.rows)
+		const grupo_id = rows2.rows[0].grupo_id
 		const final = await pool.query("insert into usuario_em_grupo (usuario_id, grupo_id) values ($1, $2)",[user_id, grupo_id])
 		return res.status(200).send(final)
 	} catch(err) {
@@ -119,7 +130,25 @@ router.get("/usuarios_em_grupo/:grupo_name", async (req,res) => {
 	}
 })
 
-router.get("/")
+router.get("/get_grupo_by_id/:grupo_id", async (req,res) => {
+	const { grupo_id } = req.params 
+	try {
+		const grupo = await pool.query("SELECT * FROM grupo WHERE grupo_id = $1",[grupo_id])
+
+		const users = await pool.query("SELECT u.usuario_id, u.username, u.isadmin, u.isconteudista, g.grupo_id, g.nivel, g.nome FROM usuario u INNER JOIN usuario_em_grupo ug ON ug.usuario_id = u.usuario_id INNER JOIN grupo g ON g.grupo_id = ug.grupo_id WHERE g.grupo_id = $1",[grupo_id]) 
+		
+		const finalizados = await pool.query("select u.username, t.tarefa_id, d.identificador, t.title, t.nivel, t.tipo, d.nota from usuario u inner join usuario_de_grupo_responde d on u.usuario_id = d.usuario_id inner join tarefa t on t.tarefa_id = d.tarefa_id inner join resposta r on t.tarefa_id = r.tarefa_id and r.grupo_id = d.grupo_id WHERE r.grupo_id = $1 AND r.isopen = false",[grupo_id])
+
+		const aberto = await pool.query("select u.username, t.tarefa_id, d.identificador, t.title, t.nivel, t.tipo from usuario u inner join usuario_de_grupo_responde d on u.usuario_id = d.usuario_id inner join tarefa t on t.tarefa_id = d.tarefa_id inner join resposta r on t.tarefa_id = r.tarefa_id and r.grupo_id = d.grupo_id WHERE r.grupo_id = $1 AND r.isopen = true",[grupo_id])
+
+
+		return res.status(200).send({grupo_info: grupo.rows[0], users: users.rows, feitos: finalizados.rows, aberto: { titulo: aberto.rows[0].title, dados: aberto.rows}})
+
+	} catch(err) {
+		console.log(err)
+		return res.status(400).send(err)
+	}
+})
 
 
 

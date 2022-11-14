@@ -70,6 +70,7 @@ router.post('/upload_audio', async ( req,res ) => {
 		var grupo_id = req.body.grupo_id
 		var tarefa_id = req.body.tarefa_id
 		var identificador = req.body.identificador
+		var text = req.body.text | null
 		
 		var filename = req.body.filename
 		const  blob = new Blob(req.body.file, {
@@ -95,7 +96,7 @@ router.post('/upload_audio', async ( req,res ) => {
 					if(err) throw err;
 					console.log("deu bom, meu consagrado")
 
-					const new_entry = await pool.query("INSERT INTO usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, filepath, text) VALUES ($1, $2, $3, $4, $5, $6)",[user_id, grupo_id, tarefa_id, identificador, null, text])
+					const new_entry = await pool.query("INSERT INTO usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, nota, text) VALUES ($1, $2, $3, $4, $5, $6)",[usuario_id, grupo_id, tarefa_id, identificador, null, null])
 
 					return res.status(200).send("Agora sim, deu bom")
 				})
@@ -108,14 +109,19 @@ router.post('/upload_audio', async ( req,res ) => {
 
 router.post('/create_resposta', async (req,res) => {
 	try {
-		const { tarefa_id, grupo_id, usuario_id, text, identificador, filepath } = req.body
-		await pool.query('INSERT INTO usuario_de_grupo_responde (tarefa_id, grupo_id, usuario_id, identificador, filepath, text) VALUES ($1,$2, $3, $4, $5, $6)'[tarefa_id, grupo_id, usuario_id, identificador, filepath, text])
+		const { tarefa_id, grupo_id, usuario_id, text, identificador } = req.body
+		const make_resposta = await pool.query('INSERT INTO usuario_de_grupo_responde (tarefa_id, grupo_id, usuario_id, identificador, text) VALUES ($1, $2, $3, $4, $5)',[tarefa_id, grupo_id, usuario_id, identificador, text])
 
+		console.log("make_resposta")
+
+		return res.status(200).send(true)
 
 	} catch (err) {
-
+		return res.status(400).send(err)
 	}
 })
+
+
 
 // router.post('/rate_resposta', async ( req,res ) => {
 // 	try {
@@ -156,12 +162,12 @@ router.post('/create_resposta', async (req,res) => {
 // 	}
 // })
 
-router.get('/audio_by_name/:name',(req,res) => {
-	const { name } = req.params
+router.get('/audio_by_name/:grupo_id/:name',(req,res) => {
+	const { name, grupo_id } = req.params
 
 	try {
 		const range = req.headers.range;
-    const videoPath = base + "/" + name + ".mp3"
+    const videoPath = path.join(base,grupo_id, name + '.mp3') 	//base + "/" + name + ".mp3"
     console.log(videoPath)
     const videoSize = fs.statSync(videoPath).size;
     console.log(videoSize)
@@ -210,5 +216,35 @@ router.get('/audio',(req,res) => {
     const stream = fs.createReadStream(videoPath,{start, end})
     stream.pipe(res)
 })
+
+// router.get('/get_respostas/:grupo_id/:tarefa_id', (req,res) => {
+// 	const {grupo_id, tarefa_id } = req.params
+// 	try {
+// 		const tipo = await pool.query("SELECT tipo FROM tarefa WHERE tarefa_id = $1",[tarefa_id])
+
+// 		const resposta = await pool.query("SELECt * FROM resposta WHERE grupo_id = $1 and isopen = false ",[grupo_id])
+
+
+// 		// if(tipo.rows[0].tipo == 'audio') {
+// 		// 	const idents = []
+// 		// 	idents.push()	
+// 		// }
+
+// 		if(tipo.rows[0].tipo == 'audio') {
+			
+// 		}
+
+// 		else if (tipo.rows[0].tipo == 'texto'){
+// 			const idents = await pool.query("SELECT identificador, text, usuario_id FROM usuario_de_grupo_responde WHERE grupo_id = $1 AND tarefa_id = $2",[grupo_id, tarefa_id])
+
+// 		}
+
+// 		return res.status(200).send({resposta: resposta, idents: idents})		
+// 	}
+// 	catch(err) {
+// 		console.log(err)
+// 		return res.status(400).send(err)
+// 	}
+// })
 
 module.exports = router
