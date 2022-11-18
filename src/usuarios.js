@@ -26,8 +26,30 @@ router.use(function tileLog(req,res,next) {
 router.use(express.json())
 
 
-router.get('/user', auth, (req,res) => {
-	
+router.post('/user', (req,res) => {
+	try {
+		// const token = req.headers['x-access-token']
+
+		const token = req.body.token
+
+		console.log("token")
+		console.log(token)
+
+		if(!!token) {
+			const decode = jwt.verify(token, process.env.TOKEN_KEY)
+			console.log("decode")
+			console.log(decode)
+			return res.status(200).send({login: true, data:decode})
+		}
+
+		else {
+			console.log("agora fodeu")
+			return res.status(400).send({login: false, data: "erro"})
+		}
+	} catch(err) {
+		console.log(err)
+			return res.status(400).send({login: false, data: err})
+	}
 })
 
 router.post('/welcome', auth, (req,res) => {
@@ -205,7 +227,7 @@ router.get('/user_info', auth, async (req,res) => {
 			return res.status(403).send("Uma token é necessária para autenticação 2")
 		}
 
-		const decoded = jwt.verify(token, config.TOKEN_KEY)
+		const decoded = jwt.verify(token, process.env.TOKEN_KEY)
 
 		// const { rows } = await pool.query("SELECT usuario_id, username, isConteudista, isAdmin, grupo_id FROM usuario NATURAL JOIN usuario_em_grupo WHERE usuario_id = $1",[decoded.user_id])
 

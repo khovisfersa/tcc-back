@@ -26,7 +26,7 @@ const pool = new Pool({
 
 
 // const base = '/home/admin/tcc/fileSystem/'
-const base = path.join(__dirname, '..', 'fileSystem','tmp')
+const base = path.join(__dirname, '..', 'fileSystem')
 
 /////////////////rotas\\\\\\\\\\\\\\\\\\
 
@@ -38,6 +38,7 @@ const base = path.join(__dirname, '..', 'fileSystem','tmp')
 router.get('/upload', (req,res) => {
 	return res.status(200).sendFile(base + "upload.html")
 })
+
 
 router.post('/uploadaudio', (req,res) => {
 	console.log("respostas.js")
@@ -64,53 +65,65 @@ router.post('/uploadaudio', (req,res) => {
 	})
 })
 
+
 router.post('/upload_audio', async ( req,res ) => {
-		console.log("veio pra ca")
-		var user_id = req.body.user_id
-		var grupo_id = req.body.grupo_id
-		var tarefa_id = req.body.tarefa_id
-		var identificador = req.body.identificador
-		var text = req.body.text | null
-		
-		var filename = req.body.filename
-		const  blob = new Blob(req.body.file, {
-			type: 'audio/mp3'
-		})
+	const filename = req.body.filename
+	const  blob = new Blob(req.body.file, {
+		type: 'audio/mp3'
+	})
 
-		let form = new formidable.IncomingForm();
+	let form = new formidable.IncomingForm();
 
-		console.log("coisou")
-		form.parse(req, (error, fields, file) => {
-			let file_path = file.file.filepath
-			let new_path = path.join(base, fields.filename + '.mp3')
-			try {
-				fs.access(file_path, fs.constants.F_OK,(err) => {
-					if(err) throw err
-					console.log("existe!")
-				})
-				fs.chmod(file_path, 0o777, (err) => {
-					if (err) throw err
-					console.log("deu bom, eu acho")
-				})
-				fs.rename(file_path, new_path	, async (err) => {
-					if(err) throw err;
-					console.log("deu bom, meu consagrado")
 
-					const new_entry = await pool.query("INSERT INTO usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, nota, text) VALUES ($1, $2, $3, $4, $5, $6)",[usuario_id, grupo_id, tarefa_id, identificador, null, null])
+	console.log("coisou")
+	form.parse(req, (error, fields, file) => {
+		let file_path = file.file.filepath
+		console.log(fields)
+		console.log(base)
+		let new_path = path.join(base, fields.grupo_id, fields.grupo_id + '-' + fields.tarefa_id + '-' + fields.identificador + '.mp3')
+		try {
+			fs.access(file_path, fs.constants.F_OK,(err) => {
+				if(err) throw err
+				console.log("existe!")
+			})
+			fs.chmod(file_path, 0o777, (err) => {
+				if (err) throw err
+				console.log("deu bom, eu acho")
+			})
+			fs.rename(file_path, new_path	, async (err) => {
+				if(err) throw err;
+				console.log("deu bom, meu consagrado")
 
-					return res.status(200).send("Agora sim, deu bom")
-				})
-			} catch(err) {
-				console.log("deu ruim, menó")
-				return res.status(400).send("deu ruim, menó")
-			} 
+				const new_entry = await pool.query("INSERT INTO usuario_de_grupo_responde (usuario_id, grupo_id, tarefa_id, identificador, nota, text) VALUES ($1, $2, $3, $4, $5, $6)",[fields.usuario_id, fields.grupo_id, fields.tarefa_id, fields.identificador, null, null])
+
+				const { rows } = await pool.query("select count(identificador) from usuario_de_grupo_responde where tarefa_id= $1 and grupo_id = $2",[fields.tarefa_id, fields.grupo_id])
+
+				let num = rows[0].count
+				if(num == 5){
+					const update = pool.query("UPDATE resposta SET isopen = FALSE WHERE grupo_id = $1 AND tarefa_id = $2",[fields.grupo_id, fields.tarefa_id])
+				}
+
+
+				return res.status(200).send("Agora sim, deu bom")
+			})
+		} catch(err) {
+			console.log("deu ruim, menó")
+			return res.status(400).send("deu ruim, menó")
+		} 
 		})
 })
+
 
 router.post('/create_resposta', async (req,res) => {
 	try {
 		const { tarefa_id, grupo_id, usuario_id, text, identificador } = req.body
 		const make_resposta = await pool.query('INSERT INTO usuario_de_grupo_responde (tarefa_id, grupo_id, usuario_id, identificador, text) VALUES ($1, $2, $3, $4, $5)',[tarefa_id, grupo_id, usuario_id, identificador, text])
+
+		const { rows } = await pool.query("SELECT identificador FROM usuario_de_grupo_responde WHERE tarefa_id = $1 AND grupo_id = $2",[tarefa_id, grupo_id])
+
+		if(rows.length == 5) {
+			const update = pool.query("UPDATE resposta SET isopen = FALSE WHERE grupo_id = $1 AND tarefa_id = $2",[grupo_id, tarefa_id])
+		}
 
 		console.log("make_resposta")
 
@@ -122,45 +135,51 @@ router.post('/create_resposta', async (req,res) => {
 })
 
 
+router.get('/avaliacoes/:grupo_id/:tarefa_id', async (req,res) => {
+	const { grupo_id, tarefa_id } = req.params
+	try {
+		const avaliacoes = await pool.query("select * from avaliacao where grupo_id = $1 and tarefa_id = $2",[grupo_id, tarefa_id])
 
-// router.post('/rate_resposta', async ( req,res ) => {
-// 	try {
-// 		const {  }
-// 	} catch(err) {
-
-// 	}
-// })
-
-
-// router.post('/upload_audio', async (req,res) => {
-// 	try {
-// 		console.log("veio pra ca")
-		
-// 		var filename = req.body.filename || "teste"
-// 		console.log("req.body: ")
-// 		console.log("req.filename: " + req.filename)
-// 		console.log("////////////////////////////")
-
-// 		console.log("file name: " + filename)
-
-// 		var file_path = base + filename + ".mp3"
+		return res.status(200).send(avaliacoes.rows)
+	}
+	catch(err) {
+		res.status(400).send(err)
+	}
+})
 
 
+router.get('/ja_comentei/:grupo_id/:tarefa_id/:usuario_id', async (req,res) => {
+	const { grupo_id, tarefa_id, usuario_id} = req.params
 
-// 		const  blob = new Blob(req.body.file, {
-// 			type: 'audio/mp3'
-// 		})
+	try {
+		const didI = await pool.query("select * from avaliacao where grupo_id= $1 and tarefa_id = $2 and usuario_id = $3",[grupo_id, tarefa_id, usuario_id])
 
-// 		fs.createWriteStream(file_path).write(JSON.stringify(blob))
+		if(didI.rows[0].length == 0) {
+			return res.status(200).send(false)
+		}
+		else {
+			return res.status(200).send(true)
+		}
+	}
+	catch(err) {
+		return res.status(400).send(err)
+	}
+})
 
-// 		// const buffer = Buffer.from( await blob.arrayBuffer() )
-// 		// fs.writeFile(base + 'tmp/' + filename + '.mp3', buffer, () => console.log('audio saved!') );
-// 		return res.status(200).send("file created successfully")
-// 	} catch(err) {
-// 		console.log(err)
-// 		return res.status(400).send(err)
-// 	}
-// })
+
+router.post('/criar_avaliacao', async (req,res) => {
+	const { usuario_id, tarefa_id, grupo_id, comentario, nota } = req.body
+
+
+	try {
+		const insert = await pool.query("insert into avaliacao (usuario_id, grupo_id, tarefa_id, comentario, nota) VALUES ($1, $2, $3, $4, $5) returning comentario",[usuario_id, grupo_id, tarefa_id, comentario, nota])
+
+		return res.status(200).send(insert.rows[0])
+	} catch(err) {
+		return res.status(400).send(err)
+	}
+})
+
 
 router.get('/audio_by_name/:grupo_id/:name',(req,res) => {
 	const { name, grupo_id } = req.params
@@ -187,11 +206,10 @@ router.get('/audio_by_name/:grupo_id/:name',(req,res) => {
     const stream = fs.createReadStream(videoPath,{start, end})
     stream.pipe(res)	
 	} catch(err) {
-
+		res.status(404).send("Audio não encontrado")
 	}
 })
 
-// router.get('/audio_by_resposta', (req,res) => {})
 
 router.get('/audio',(req,res) => {
 	console.log("respostas")
@@ -217,34 +235,33 @@ router.get('/audio',(req,res) => {
     stream.pipe(res)
 })
 
-// router.get('/get_respostas/:grupo_id/:tarefa_id', (req,res) => {
-// 	const {grupo_id, tarefa_id } = req.params
-// 	try {
-// 		const tipo = await pool.query("SELECT tipo FROM tarefa WHERE tarefa_id = $1",[tarefa_id])
 
-// 		const resposta = await pool.query("SELECt * FROM resposta WHERE grupo_id = $1 and isopen = false ",[grupo_id])
+router.get('/get_respostas_texto/:grupo_id/:tarefa_id', async (req,res) => {
+	const { grupo_id, tarefa_id } = req.params
+
+	try {
+		const respostas = await pool.query("select * from usuario_de_grupo_responde where grupo_id = $1 and tarefa_id = $2",[grupo_id, tarefa_id]) 
+
+		return res.status(200).send(respostas.rows)
+
+	}
+	catch(err) {
+		return res.status(400).send(err)
+	}
+})
 
 
-// 		// if(tipo.rows[0].tipo == 'audio') {
-// 		// 	const idents = []
-// 		// 	idents.push()	
-// 		// }
+router.post('/make_avaliacao', async (req,res) => {
+	const { grupo_id, tarefa_id, usuario_id, comentario, nota } = req.body
+	try {
+		const insert = await pool.query("INSERT INTO avaliacao (usuario_id, grupo_id, tarefa_id, comentario, nota) VALUES ($1, $2, $3, $4, $5)",[usuario_id, grupo_id, tarefa_id, comentario, nota])
 
-// 		if(tipo.rows[0].tipo == 'audio') {
-			
-// 		}
+		return res.status(200).send("ok")
+	}
+	catch(err) {
+		return res.status(400).send("Deu ruim, ó")
+	}
+})
 
-// 		else if (tipo.rows[0].tipo == 'texto'){
-// 			const idents = await pool.query("SELECT identificador, text, usuario_id FROM usuario_de_grupo_responde WHERE grupo_id = $1 AND tarefa_id = $2",[grupo_id, tarefa_id])
-
-// 		}
-
-// 		return res.status(200).send({resposta: resposta, idents: idents})		
-// 	}
-// 	catch(err) {
-// 		console.log(err)
-// 		return res.status(400).send(err)
-// 	}
-// })
 
 module.exports = router

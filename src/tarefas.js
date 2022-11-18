@@ -35,7 +35,7 @@ router.use(function timeLog(req,res,next) {
 
 router.use(express.json());
 
-router.post("/criar_tarefa", auth, conteudista, async (req,res) => {
+router.post("/criar_tarefa",  async (req,res) => {
 	const { title, nivel, text, tipo, rubrica } = req.body
 	try {
 		console.log("teste")
@@ -95,6 +95,8 @@ router.get('/tarefa_ativa/:grupo_id', async (req,res) => {
 	const { grupo_id } = req.params
 	try {
 		let resposta = await pool.query("SELECT tarefa_id FROM resposta WHERE grupo_id = $1 AND isopen = true", [grupo_id])
+
+		console.log(resposta.rows[0])
 
 		let tarefa_id = resposta.rows[0].tarefa_id
 
