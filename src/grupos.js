@@ -165,7 +165,17 @@ router.get("/get_grupo_by_id/:grupo_id", async (req,res) => {
 })
 
 
+router.get("/nome/:grupo_id", async (req,res) => {
+	const { grupo_id } = req.params
+	try {
+		const { rows } = await pool.query("select nome from grupo where grupo_id = $1",[grupo_id])
 
+		return res.status(200).send(rows[0].nome)
+	}
+	catch(err) {
+		return res.status(400).send(err)
+	}
+})
 
 
 module.exports = router;

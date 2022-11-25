@@ -256,10 +256,32 @@ router.post('/make_avaliacao', async (req,res) => {
 	try {
 		const insert = await pool.query("INSERT INTO avaliacao (usuario_id, grupo_id, tarefa_id, comentario, nota) VALUES ($1, $2, $3, $4, $5)",[usuario_id, grupo_id, tarefa_id, comentario, nota])
 
+		const { rows } = await pool.query("select avg(nota) from avaliacao where grupo_id = $1 and tarefa_id = $2 group by tarefa_id",[grupo_id, tarefa_id])
+		
+		const update = await pool.query("update resposta set nota = $1 where grupo_id = $2 and tarefa_id = $3",[rows[0].avg, grupo_id, tarefa_id])
+
 		return res.status(200).send("ok")
 	}
 	catch(err) {
+		console.log(err)
 		return res.status(400).send("Deu ruim, ó")
+	}
+})
+
+
+router.post('/tarefas_avaliaveis', async (req,res) => {
+	const { usuario_id } = req.body
+
+	try {
+		const idioma = await pool.query("select idioma from usuario u inner join (usuario_em_grupo ug natural join grupo g) on ug.usuario_id = u.usuario_id where u.usuario_id = $1",[usuario_id])
+
+		const tarefas = await pool.query("select r.tarefa_id, t.title, r.nota, r.grupo_id, t.nivel, g.nome, g.idioma from resposta r inner join tarefa t on t.tarefa_id = r.tarefa_id inner join grupo g on g.grupo_id = r.grupo_id where g.idioma = $1 and r.isopen = false",[idioma.rows[0].idioma])
+	
+		return res.status(200).send(tarefas.rows)
+	}
+	catch(err) {
+		console.log(err)
+		return res.status(400).send(err)
 	}
 })
 
