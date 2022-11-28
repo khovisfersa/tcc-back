@@ -110,7 +110,7 @@ router.post('/upload_audio', async ( req,res ) => {
 			console.log("deu ruim, menó")
 			return res.status(400).send("deu ruim, menó")
 		} 
-		})
+	})
 })
 
 
